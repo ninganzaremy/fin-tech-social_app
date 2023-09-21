@@ -1,10 +1,9 @@
 package com.fintechsocial.model;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
+import java.util.Date;
 import java.util.Objects;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 @Entity
 public class User {
@@ -15,15 +14,26 @@ public class User {
   private String username;
   private String email;
   private String password;
+  private String role; // Example role: USER, ADMIN, EDITOR
+  @Temporal(TemporalType.TIMESTAMP)
+  private Date dateCreated;
+  @Temporal(TemporalType.TIMESTAMP)
+  private Date lastLogin;
+
 
   // Default constructor
-  public User() {}
+  public User() {
+    this.dateCreated = new Date(); // Sets the date of creation to the current date/time.
+
+  }
 
   // Parameterized constructor
   public User(String username, String email, String password) {
     this.username = username;
     this.email = email;
-    this.password = password;
+    setPassword(password); //hash the password before saving.
+    this.dateCreated = new Date();
+
   }
 
   // Getters and setters
@@ -56,10 +66,15 @@ public class User {
   }
 
   public void setPassword(String password) {
-    this.password = password;
+    BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    this.password = passwordEncoder.encode(password);
   }
 
-  // equals, hashCode and toString methods
+  public boolean verifyPassword(String inputPassword) {
+    BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    return passwordEncoder.matches(inputPassword, this.password);
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -82,6 +97,9 @@ public class User {
         "id=" + id +
         ", username='" + username + '\'' +
         ", email='" + email + '\'' +
+        ", role='" + role + '\'' +
+        ", dateCreated=" + dateCreated +
+        ", lastLogin=" + lastLogin +
         ", password='" + "*****" + '\'' +
         '}';
   }
